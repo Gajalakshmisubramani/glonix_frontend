@@ -123,51 +123,70 @@ const Items = () => {
                 <p className="text-muted-foreground text-lg">There are no active items.</p>
               </div>
             ) : (
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-border">
-                    <th className="text-left p-3 text-muted-foreground font-medium">NAME</th>
-                    <th className="text-left p-3 text-muted-foreground font-medium">PURCHASE DESCRIPTION</th>
-                    <th className="text-left p-3 text-muted-foreground font-medium">PURCHASE RATE</th>
-                    <th className="text-left p-3 text-muted-foreground font-medium">DESCRIPTION</th>
-                    <th className="text-left p-3 text-muted-foreground font-medium">RATE</th>
-                    <th className="text-left p-3 text-muted-foreground font-medium">STOCK ON HAND</th>
-                    <th className="text-left p-3 text-muted-foreground font-medium">USAGE UNIT</th>
-                    <th className="w-10 p-3"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredItems.map((item) => (
-                    <tr 
-                      key={item.id} 
-                      className="border-b border-border hover:bg-muted/50 cursor-pointer"
-                      onClick={() => handleItemClick(item.id)}
-                    >
-                      <td className="p-3">
+              <div className="bg-card border border-border rounded-lg">
+                <table className="w-full">
+                  <thead className="bg-muted/30">
+                    <tr className="border-b border-border">
+                      <th className="text-left p-4 text-muted-foreground font-medium text-sm uppercase tracking-wide">
                         <div className="flex items-center gap-3">
-                          <input 
-                            type="checkbox" 
-                            className="rounded border-border" 
-                            onChange={(e) => e.stopPropagation()}
-                          />
-                          <span className="font-medium text-foreground">{item.name}</span>
+                          <input type="checkbox" className="rounded border-border" />
+                          NAME
                         </div>
-                      </td>
-                      <td className="p-3 text-foreground">{item.purchaseDescription || '-'}</td>
-                      <td className="p-3 text-foreground">₹{item.costPrice.toFixed(2)}</td>
-                      <td className="p-3 text-foreground">{item.description || '-'}</td>
-                      <td className="p-3 text-foreground">₹{item.sellingPrice.toFixed(2)}</td>
-                      <td className="p-3 text-foreground">{item.stockOnHand.toFixed(2)}</td>
-                      <td className="p-3 text-foreground">{item.unit}</td>
-                      <td className="p-3">
-                        <Button variant="ghost" size="sm" onClick={(e) => e.stopPropagation()}>
-                          <MoreHorizontal className="w-4 h-4" />
-                        </Button>
-                      </td>
+                      </th>
+                      <th className="text-left p-4 text-muted-foreground font-medium text-sm uppercase tracking-wide">
+                        PURCHASE DESCRIPTION
+                      </th>
+                      <th className="text-left p-4 text-muted-foreground font-medium text-sm uppercase tracking-wide">
+                        PURCHASE RATE
+                      </th>
+                      <th className="text-left p-4 text-muted-foreground font-medium text-sm uppercase tracking-wide">
+                        DESCRIPTION
+                      </th>
+                      <th className="text-left p-4 text-muted-foreground font-medium text-sm uppercase tracking-wide">
+                        RATE
+                      </th>
+                      <th className="text-left p-4 text-muted-foreground font-medium text-sm uppercase tracking-wide">
+                        STOCK ON HAND
+                      </th>
+                      <th className="text-left p-4 text-muted-foreground font-medium text-sm uppercase tracking-wide">
+                        USAGE UNIT
+                      </th>
+                      <th className="w-12 p-4"></th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="bg-background">
+                    {filteredItems.map((item) => (
+                      <tr 
+                        key={item.id} 
+                        className="border-b border-border hover:bg-muted/30 cursor-pointer transition-colors"
+                        onClick={() => handleItemClick(item.id)}
+                      >
+                        <td className="p-4">
+                          <div className="flex items-center gap-3">
+                            <input 
+                              type="checkbox" 
+                              className="rounded border-border" 
+                              onChange={(e) => e.stopPropagation()}
+                            />
+                            <span className="font-medium text-foreground">{item.name}</span>
+                          </div>
+                        </td>
+                        <td className="p-4 text-foreground">{item.purchaseDescription || '-'}</td>
+                        <td className="p-4 text-foreground">₹{item.costPrice.toFixed(2)}</td>
+                        <td className="p-4 text-foreground">{item.description || '-'}</td>
+                        <td className="p-4 text-foreground">₹{item.sellingPrice.toFixed(2)}</td>
+                        <td className="p-4 text-foreground">{item.stockOnHand.toFixed(2)}</td>
+                        <td className="p-4 text-foreground">{item.unit}</td>
+                        <td className="p-4">
+                          <Button variant="ghost" size="sm" onClick={(e) => e.stopPropagation()}>
+                            <MoreHorizontal className="w-4 h-4" />
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
           </div>
         </Card>

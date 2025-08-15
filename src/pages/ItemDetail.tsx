@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ArrowLeft, Edit, MoreHorizontal, X, ChevronDown } from 'lucide-react';
 import { Item } from './Items';
 
@@ -231,13 +232,47 @@ const ItemDetail = () => {
           </TabsContent>
 
           <TabsContent value="transactions" className="space-y-6">
-            <Card>
-              <CardContent className="p-6">
-                <div className="text-center py-12">
-                  <p className="text-muted-foreground text-lg">No transactions found for this item.</p>
+            <div className="space-y-4">
+              {/* Filter Section */}
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <Label className="text-muted-foreground">Filter By:</Label>
+                  <Select defaultValue="quotes">
+                    <SelectTrigger className="w-32 bg-background border-border">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-card border-border">
+                      <SelectItem value="quotes">Quotes</SelectItem>
+                      <SelectItem value="invoices">Invoices</SelectItem>
+                      <SelectItem value="bills">Bills</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
-              </CardContent>
-            </Card>
+                <div className="flex items-center gap-2">
+                  <Label className="text-muted-foreground">Status:</Label>
+                  <Select defaultValue="all">
+                    <SelectTrigger className="w-24 bg-background border-border">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-card border-border">
+                      <SelectItem value="all">All</SelectItem>
+                      <SelectItem value="draft">Draft</SelectItem>
+                      <SelectItem value="sent">Sent</SelectItem>
+                      <SelectItem value="accepted">Accepted</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Transactions Table */}
+              <Card>
+                <CardContent className="p-6">
+                  <div className="text-center py-12">
+                    <p className="text-muted-foreground text-lg">There are no quotes</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
 
           <TabsContent value="history" className="space-y-6">

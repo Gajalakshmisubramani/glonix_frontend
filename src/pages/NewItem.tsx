@@ -8,11 +8,13 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useNavigate } from 'react-router-dom';
+import { useToast } from '@/hooks/use-toast';
 import { Item } from './Items';
 import { ArrowLeft, HelpCircle } from 'lucide-react';
 
 const NewItem = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
     name: '',
     type: 'goods' as 'goods' | 'service',
@@ -64,7 +66,16 @@ const NewItem = () => {
     const updatedItems = [...existingItems, newItem];
     localStorage.setItem('inventoryItems', JSON.stringify(updatedItems));
     
-    navigate('/');
+    toast({
+      title: "Success!",
+      description: "Item saved successfully.",
+      className: "bg-success text-success-foreground border-success",
+    });
+
+    // Redirect to items page after a short delay
+    setTimeout(() => {
+      navigate('/');
+    }, 1000);
   };
 
   return (
@@ -258,8 +269,7 @@ const NewItem = () => {
             </div>
 
             {/* Track Inventory */}
-            {formData.type === 'goods' && (
-              <div className="space-y-4 border-t pt-6">
+            <div className="space-y-4 border-t pt-6">
                 <div className="flex items-center space-x-2">
                   <Checkbox
                     id="track-inventory"
@@ -339,7 +349,6 @@ const NewItem = () => {
                   </div>
                 )}
               </div>
-            )}
 
             {/* Submit Button */}
             <div className="flex justify-end pt-6 border-t">
