@@ -15,7 +15,10 @@ const ItemDetail = () => {
 
   useEffect(() => {
     const savedItems = JSON.parse(localStorage.getItem('inventoryItems') || '[]');
+    console.log('All saved items:', savedItems);
+    console.log('Looking for item with ID:', id);
     const foundItem = savedItems.find((item: Item) => item.id === id);
+    console.log('Found item:', foundItem);
     setItem(foundItem);
   }, [id]);
 
@@ -23,7 +26,14 @@ const ItemDetail = () => {
     return (
       <div className="min-h-screen bg-background p-6">
         <div className="max-w-7xl mx-auto">
-          <p className="text-center text-muted-foreground">Item not found</p>
+          <div className="text-center space-y-4">
+            <p className="text-muted-foreground text-lg">Item not found</p>
+            <p className="text-sm text-muted-foreground">Looking for item ID: {id}</p>
+            <Button onClick={() => navigate('/')} className="bg-primary hover:bg-primary/90">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Items
+            </Button>
+          </div>
         </div>
       </div>
     );
