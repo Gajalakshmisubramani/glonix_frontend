@@ -40,7 +40,6 @@ export default function ChallansPage() {
             <tr className="text-sm text-green-900 bg-green-100">
               <th className="p-3 text-left">DATE</th>
               <th className="p-3 text-left">DELIVERY CHALLAN#</th>
-              <th className="p-3 text-left">REFERENCE NUMBER</th>
               <th className="p-3 text-left">CUSTOMER NAME</th>
               <th className="p-3 text-left">STATUS</th>
               <th className="p-3 text-left">INVOICE STATUS</th>
@@ -62,7 +61,6 @@ export default function ChallansPage() {
                       {c.challanNo}
                     </Link>
                   </td>
-                  <td className="p-3">{c.referenceNo}</td>
                   <td className="p-3">{c.customerName}</td>
                   <td className="p-3">
                     <span className="px-2 py-1 text-xs text-green-800 bg-green-200 rounded-full">

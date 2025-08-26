@@ -3,7 +3,15 @@
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
-type ItemRow = { id: string; name: string; qty: number; rate: number };
+type TaxMode = "NONE" | "CGST_SGST" | "IGST";
+
+type ItemRow = {
+  id: string;
+  name: string;
+  qty: number;
+  rate: number;
+  taxMode: TaxMode;
+};
 
 const STORAGE_KEY = "quotes";
 
@@ -16,7 +24,9 @@ export default function NewQuotePage() {
     "Q-" + (Math.floor(Date.now() / 1000) % 100000)
   );
   const [reference, setReference] = useState("");
-  const [quoteDate, setQuoteDate] = useState(new Date().toISOString().slice(0, 10));
+  const [quoteDate, setQuoteDate] = useState(
+    new Date().toISOString().slice(0, 10)
+  );
   const [expiryDate, setExpiryDate] = useState("");
   const [salesperson, setSalesperson] = useState("");
   const [projectName, setProjectName] = useState("");
@@ -26,31 +36,49 @@ export default function NewQuotePage() {
 
   // Items
   const [items, setItems] = useState<ItemRow[]>([
-    { id: crypto.randomUUID(), name: "", qty: 1, rate: 0 },
+    { id: crypto.randomUUID(), name: "", qty: 1, rate: 0, taxMode: "NONE" },
   ]);
 
   // Pricing controls
   const [discountPct, setDiscountPct] = useState(0); // 0–100
-  const [taxType, setTaxType] = useState<"TDS" | "TCS">("TDS");
-  const [taxPct, setTaxPct] = useState(0); // 0, 5, 12, 18, 28
   const [adjustment, setAdjustment] = useState(0);
 
+  // Calculate row amount with tax
+  const rowAmount = (row: ItemRow) => {
+    const base = row.qty * row.rate;
+    if (row.taxMode === "CGST_SGST") {
+      return base + base * 0.18; // 9% + 9%
+    }
+    if (row.taxMode === "IGST") {
+      return base + base * 0.18; // 18%
+    }
+    return base;
+  };
+
+  // Totals
   const subTotal = useMemo(
-    () => items.reduce((s, i) => s + (Number(i.qty) || 0) * (Number(i.rate) || 0), 0),
+    () => items.reduce((s, i) => s + rowAmount(i), 0),
     [items]
   );
-  const discountAmt = useMemo(() => (subTotal * (Number(discountPct) || 0)) / 100, [subTotal, discountPct]);
-  const taxAmt = useMemo(() => {
-    const base = ((subTotal - discountAmt) * (Number(taxPct) || 0)) / 100;
-    return taxType === "TDS" ? -base : base; // TDS deducts, TCS adds
-  }, [subTotal, discountAmt, taxPct, taxType]);
-  const total = useMemo(() => subTotal - discountAmt + taxAmt + (Number(adjustment) || 0), [subTotal, discountAmt, taxAmt, adjustment]);
+  const discountAmt = useMemo(
+    () => (subTotal * (Number(discountPct) || 0)) / 100,
+    [subTotal, discountPct]
+  );
+  const total = useMemo(
+    () => subTotal - discountAmt + (Number(adjustment) || 0),
+    [subTotal, discountAmt, adjustment]
+  );
 
   const addRow = () =>
-    setItems((rows) => [...rows, { id: crypto.randomUUID(), name: "", qty: 1, rate: 0 }]);
+    setItems((rows) => [
+      ...rows,
+      { id: crypto.randomUUID(), name: "", qty: 1, rate: 0, taxMode: "NONE" },
+    ]);
 
   const removeRow = (id: string) =>
-    setItems((rows) => (rows.length === 1 ? rows : rows.filter((r) => r.id !== id)));
+    setItems((rows) =>
+      rows.length === 1 ? rows : rows.filter((r) => r.id !== id)
+    );
 
   const updateRow = (id: string, patch: Partial<ItemRow>) =>
     setItems((rows) => rows.map((r) => (r.id === id ? { ...r, ...patch } : r)));
@@ -66,7 +94,6 @@ export default function NewQuotePage() {
       customerName,
       status,
       amount: total,
-      // keep rest of fields in case you want to use later
       meta: {
         reference,
         expiryDate,
@@ -77,14 +104,12 @@ export default function NewQuotePage() {
         terms,
         items,
         discountPct,
-        taxPct,
-        taxType,
         adjustment,
       },
     });
 
     localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
-    router.push("/quotes");
+    router.push("/books/sales/quotes");
   }
 
   return (
@@ -95,7 +120,9 @@ export default function NewQuotePage() {
         {/* Top grid */}
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           <div>
-            <label className="block text-sm font-medium text-green-800">Customer Name*</label>
+            <label className="block text-sm font-medium text-green-800">
+              Customer Name*
+            </label>
             <input
               value={customerName}
               onChange={(e) => setCustomerName(e.target.value)}
@@ -104,7 +131,9 @@ export default function NewQuotePage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-green-800">Quote #*</label>
+            <label className="block text-sm font-medium text-green-800">
+              Quote #*
+            </label>
             <input
               value={quoteNumber}
               onChange={(e) => setQuoteNumber(e.target.value)}
@@ -113,7 +142,9 @@ export default function NewQuotePage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-green-800">Reference # (optional)</label>
+            <label className="block text-sm font-medium text-green-800">
+              Reference # (optional)
+            </label>
             <input
               value={reference}
               onChange={(e) => setReference(e.target.value)}
@@ -123,7 +154,9 @@ export default function NewQuotePage() {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-green-800">Quote Date*</label>
+              <label className="block text-sm font-medium text-green-800">
+                Quote Date*
+              </label>
               <input
                 type="date"
                 value={quoteDate}
@@ -132,7 +165,9 @@ export default function NewQuotePage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-green-800">Expiry Date</label>
+              <label className="block text-sm font-medium text-green-800">
+                Expiry Date
+              </label>
               <input
                 type="date"
                 value={expiryDate}
@@ -143,7 +178,9 @@ export default function NewQuotePage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-green-800">Salesperson</label>
+            <label className="block text-sm font-medium text-green-800">
+              Salesperson
+            </label>
             <input
               value={salesperson}
               onChange={(e) => setSalesperson(e.target.value)}
@@ -151,7 +188,9 @@ export default function NewQuotePage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-green-800">Project Name</label>
+            <label className="block text-sm font-medium text-green-800">
+              Project Name
+            </label>
             <input
               value={projectName}
               onChange={(e) => setProjectName(e.target.value)}
@@ -162,7 +201,9 @@ export default function NewQuotePage() {
 
         {/* Subject */}
         <div>
-          <label className="block text-sm font-medium text-green-800">Subject</label>
+          <label className="block text-sm font-medium text-green-800">
+            Subject
+          </label>
           <textarea
             value={subject}
             onChange={(e) => setSubject(e.target.value)}
@@ -185,6 +226,7 @@ export default function NewQuotePage() {
                   <th className="p-2 text-left">Item Details</th>
                   <th className="p-2 text-left">Quantity</th>
                   <th className="p-2 text-left">Rate</th>
+                  <th className="p-2 text-left">Tax Type</th>
                   <th className="p-2 text-left">Amount</th>
                   <th className="p-2"></th>
                 </tr>
@@ -195,7 +237,9 @@ export default function NewQuotePage() {
                     <td className="p-2">
                       <input
                         value={row.name}
-                        onChange={(e) => updateRow(row.id, { name: e.target.value })}
+                        onChange={(e) =>
+                          updateRow(row.id, { name: e.target.value })
+                        }
                         placeholder="Type or click to select an item"
                         className="w-full px-2 py-1 border rounded"
                       />
@@ -205,7 +249,9 @@ export default function NewQuotePage() {
                         type="number"
                         min={0}
                         value={row.qty}
-                        onChange={(e) => updateRow(row.id, { qty: Number(e.target.value) })}
+                        onChange={(e) =>
+                          updateRow(row.id, { qty: Number(e.target.value) })
+                        }
                         className="w-24 px-2 py-1 border rounded"
                       />
                     </td>
@@ -214,12 +260,29 @@ export default function NewQuotePage() {
                         type="number"
                         min={0}
                         value={row.rate}
-                        onChange={(e) => updateRow(row.id, { rate: Number(e.target.value) })}
+                        onChange={(e) =>
+                          updateRow(row.id, { rate: Number(e.target.value) })
+                        }
                         className="px-2 py-1 border rounded w-28"
                       />
                     </td>
+                    <td className="p-2">
+                      <select
+                        value={row.taxMode}
+                        onChange={(e) =>
+                          updateRow(row.id, {
+                            taxMode: e.target.value as TaxMode,
+                          })
+                        }
+                        className="px-2 py-1 border rounded"
+                      >
+                        <option value="NONE">No Tax</option>
+                        <option value="CGST_SGST">CGST+SGST (18%)</option>
+                        <option value="IGST">IGST (18%)</option>
+                      </select>
+                    </td>
                     <td className="p-2 font-medium">
-                      ₹{(Number(row.qty) * Number(row.rate)).toFixed(2)}
+                      ₹{rowAmount(row).toFixed(2)}
                     </td>
                     <td className="p-2">
                       <button
@@ -252,7 +315,9 @@ export default function NewQuotePage() {
         {/* Totals card */}
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           <div>
-            <label className="block text-sm font-medium text-green-800">Customer Notes</label>
+            <label className="block text-sm font-medium text-green-800">
+              Customer Notes
+            </label>
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
@@ -278,43 +343,10 @@ export default function NewQuotePage() {
                   className="w-24 px-2 py-1 border rounded"
                 />
                 <span>%</span>
-                <span className="text-sm text-gray-600">₹{discountAmt.toFixed(2)}</span>
+                <span className="text-sm text-gray-600">
+                  ₹{discountAmt.toFixed(2)}
+                </span>
               </div>
-            </div>
-
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex items-center gap-4">
-                <label className="flex items-center gap-1">
-                  <input
-                    type="radio"
-                    checked={taxType === "TDS"}
-                    onChange={() => setTaxType("TDS")}
-                  />
-                  TDS
-                </label>
-                <label className="flex items-center gap-1">
-                  <input
-                    type="radio"
-                    checked={taxType === "TCS"}
-                    onChange={() => setTaxType("TCS")}
-                  />
-                  TCS
-                </label>
-              </div>
-              <select
-                value={taxPct}
-                onChange={(e) => setTaxPct(Number(e.target.value))}
-                className="px-2 py-1 border rounded"
-              >
-                {[0, 5, 12, 18, 28].map((t) => (
-                  <option key={t} value={t}>
-                    {t}% Tax
-                  </option>
-                ))}
-              </select>
-              <span className="text-sm text-gray-600">
-                {taxType === "TDS" ? "-" : "+"}₹{Math.abs(taxAmt).toFixed(2)}
-              </span>
             </div>
 
             <div className="flex items-center justify-between gap-4">
@@ -335,7 +367,9 @@ export default function NewQuotePage() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-green-800">Terms & Conditions</label>
+          <label className="block text-sm font-medium text-green-800">
+            Terms & Conditions
+          </label>
           <textarea
             value={terms}
             onChange={(e) => setTerms(e.target.value)}
@@ -345,7 +379,10 @@ export default function NewQuotePage() {
 
         {/* Footer buttons */}
         <div className="flex flex-wrap justify-end gap-3">
-          <button onClick={() => save("Draft")} className="px-4 py-2 border rounded-lg hover:bg-green-100">
+          <button
+            onClick={() => save("Draft")}
+          className="px-4 py-2 text-white bg-green-600 rounded-lg shadow hover:bg-green-700"
+          >
             Save as Draft
           </button>
           <button
@@ -354,7 +391,15 @@ export default function NewQuotePage() {
           >
             Save and Send
           </button>
-          <button onClick={() => router.push("/quotes")} className="px-4 py-2 border rounded-lg hover:bg-red-100">
+          <button
+            className="px-4 py-2 text-white bg-green-600 rounded-lg shadow hover:bg-green-700"
+          >
+            download pdf
+          </button>
+          <button
+            onClick={() => router.push("/books/sales/quotes")}
+            className="px-4 py-2 text-white bg-green-600 rounded-lg shadow hover:bg-green-700"
+          >
             Cancel
           </button>
         </div>

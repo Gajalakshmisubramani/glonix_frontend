@@ -45,22 +45,28 @@ export default function ProfitLossPage() {
   };
 
   return (
-    <div className="p-6 bg-gray-100 min-h-screen">
+    <div className="min-h-screen p-6 bg-green-50">
       {/* Breadcrumb / Title */}
       <div className="mb-6">
-        <span className="text-gray-600">Business Overview &gt; Profit and Loss</span>
-        <span className="ml-2 text-gray-500">• From 01/08/2025 To 31/08/2025</span>
-        <h1 className="text-3xl font-bold mt-2">Profit and Loss</h1>
-        <div className="text-gray-600">Basis: {reportBasis}</div>
+        <span className="font-medium text-green-700">
+          Business Overview &gt; Profit and Loss
+        </span>
+        <span className="ml-2 text-green-600">
+          • From 01/08/2025 To 31/08/2025
+        </span>
+        <h1 className="mt-2 text-3xl font-bold text-green-800">
+          Profit and Loss
+        </h1>
+        <div className="text-green-700">Basis: {reportBasis}</div>
       </div>
 
       {/* Filters and Actions */}
-      <div className="flex flex-col md:flex-row md:justify-between gap-4 mb-4">
-        <div className="flex gap-2 flex-wrap">
+      <div className="flex flex-col gap-4 mb-4 md:flex-row md:justify-between">
+        <div className="flex flex-wrap gap-2">
           <select
             value={dateRange}
             onChange={(e) => setDateRange(e.target.value)}
-            className="border px-3 py-1 rounded"
+            className="px-3 py-1 text-green-800 bg-white border border-green-300 rounded"
           >
             <option>This Month</option>
             <option>Last Month</option>
@@ -69,7 +75,7 @@ export default function ProfitLossPage() {
           <select
             value={reportBasis}
             onChange={(e) => setReportBasis(e.target.value)}
-            className="border px-3 py-1 rounded"
+            className="px-3 py-1 text-green-800 bg-white border border-green-300 rounded"
           >
             <option>Accrual</option>
             <option>Cash</option>
@@ -77,7 +83,7 @@ export default function ProfitLossPage() {
           <select
             value={compareWith}
             onChange={(e) => setCompareWith(e.target.value)}
-            className="border px-3 py-1 rounded"
+            className="px-3 py-1 text-green-800 bg-white border border-green-300 rounded"
           >
             <option>None</option>
             <option>Last Month</option>
@@ -85,7 +91,7 @@ export default function ProfitLossPage() {
           </select>
           <button
             onClick={() => setShowZeroBalance(!showZeroBalance)}
-            className="border px-3 py-1 rounded flex items-center gap-1"
+            className="flex items-center gap-1 px-3 py-1 text-green-700 border border-green-400 rounded hover:bg-green-100"
           >
             {showZeroBalance ? "Hide" : "Show"} Zero Balance
             <FunnelIcon className="w-4 h-4" />
@@ -95,25 +101,25 @@ export default function ProfitLossPage() {
         <div className="flex gap-2">
           <button
             onClick={handleRunReport}
-            className="bg-blue-600 text-white px-3 py-1 rounded flex items-center gap-1"
+            className="flex items-center gap-1 px-3 py-1 text-white bg-green-600 rounded hover:bg-green-700"
           >
             Run Report <ChevronDownIcon className="w-4 h-4" />
           </button>
           <button
             onClick={handleExport}
-            className="border px-3 py-1 rounded bg-green-100 flex items-center gap-1"
+            className="flex items-center gap-1 px-3 py-1 text-green-800 bg-green-100 border border-green-400 rounded hover:bg-green-200"
           >
             Export <ArrowUpTrayIcon className="w-4 h-4" />
           </button>
           <button
             onClick={handleShare}
-            className="border px-3 py-1 rounded flex items-center gap-1"
+            className="flex items-center gap-1 px-3 py-1 text-green-800 border border-green-400 rounded hover:bg-green-100"
           >
             Share <ArrowUpTrayIcon className="w-4 h-4" />
           </button>
           <button
             onClick={handleReset}
-            className="border px-3 py-1 rounded flex items-center gap-1 text-red-500"
+            className="flex items-center gap-1 px-3 py-1 text-red-600 border border-red-400 rounded hover:bg-red-100"
           >
             Reset <XMarkIcon className="w-4 h-4" />
           </button>
@@ -121,55 +127,75 @@ export default function ProfitLossPage() {
       </div>
 
       {/* Report Table */}
-      <div className="bg-white shadow rounded-lg overflow-auto">
-        <div className="flex justify-end gap-2 p-2 text-sm border-b border-gray-200">
-          <select className="border px-2 py-1 rounded">
+      <div className="overflow-auto bg-white border border-green-200 rounded-lg shadow">
+        <div className="flex justify-end gap-2 p-2 text-sm border-b border-green-200 bg-green-50">
+          <select className="px-2 py-1 text-green-800 bg-white border border-green-300 rounded">
             <option>Accounts Without Zero Balance</option>
           </select>
-          <select className="border px-2 py-1 rounded">
+          <select className="px-2 py-1 text-green-800 bg-white border border-green-300 rounded">
             <option>Compare With: {compareWith}</option>
           </select>
-          <button className="border px-2 py-1 rounded">Customize Report Columns</button>
+          <button className="px-2 py-1 text-green-800 border border-green-300 rounded hover:bg-green-100">
+            Customize Report Columns
+          </button>
         </div>
 
         <table className="min-w-full border-collapse">
-          <thead className="bg-gray-50 sticky top-0">
+          <thead className="sticky top-0 bg-green-100">
             <tr>
-              <th className="text-left px-4 py-2 border-b">ACCOUNT</th>
-              <th className="text-right px-4 py-2 border-b">TOTAL</th>
+              <th className="px-4 py-2 text-left text-green-900 border-b border-green-200">
+                ACCOUNT
+              </th>
+              <th className="px-4 py-2 text-right text-green-900 border-b border-green-200">
+                TOTAL
+              </th>
             </tr>
           </thead>
           <tbody>
             {reportItems
               .filter((item) => showZeroBalance || item.total !== 0)
               .map((item) => (
-                <tr key={item.account} className="hover:bg-gray-50">
+                <tr
+                  key={item.account}
+                  className="text-green-800 hover:bg-green-50"
+                >
                   <td className="px-4 py-2">{item.account}</td>
-                  <td className="px-4 py-2 text-right">{item.total.toFixed(2)}</td>
+                  <td className="px-4 py-2 text-right">
+                    {item.total.toFixed(2)}
+                  </td>
                 </tr>
               ))}
           </tbody>
         </table>
 
         {/* Footer */}
-        <div className="flex justify-between items-center p-2 text-sm text-gray-600 border-t border-gray-200">
+        <div className="flex items-center justify-between p-2 text-sm text-green-700 border-t border-green-200 bg-green-50">
           <div>
             Amount is displayed in your base currency{" "}
-            <span className="bg-green-100 px-1 rounded">INR</span>
+            <span className="px-1 bg-green-200 rounded">INR</span>
           </div>
           <div className="flex gap-2">
-            <button onClick={handleRunReport} className="border p-1 rounded hover:bg-gray-100">
-              <FunnelIcon className="w-4 h-4" />
+            <button
+              onClick={handleRunReport}
+              className="p-1 border border-green-300 rounded hover:bg-green-100"
+            >
+              <FunnelIcon className="w-4 h-4 text-green-700" />
             </button>
-            <button  onClick={handleShare} className="border p-1 rounded hover:bg-gray-100">
-              <ArrowsRightLeftIcon className="w-4 h-4" />
+            <button
+              onClick={handleShare}
+              className="p-1 border border-green-300 rounded hover:bg-green-100"
+            >
+              <ArrowsRightLeftIcon className="w-4 h-4 text-green-700" />
             </button>
-            <button onClick={handleExport} className="border p-1 rounded hover:bg-gray-100">
-              <ArrowUpTrayIcon className="w-4 h-4" />
+            <button
+              onClick={handleExport}
+              className="p-1 border border-green-300 rounded hover:bg-green-100"
+            >
+              <ArrowUpTrayIcon className="w-4 h-4 text-green-700" />
             </button>
             <button
               onClick={handleReset}
-              className="border p-1 rounded hover:bg-gray-100 text-red-500"
+              className="p-1 text-red-600 border border-red-400 rounded hover:bg-red-100"
             >
               <XMarkIcon className="w-4 h-4" />
             </button>

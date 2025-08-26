@@ -3,20 +3,30 @@
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
-type ItemRow = { id: string; name: string; qty: number; rate: number };
+type TaxMode = "NONE" | "CGST_SGST" | "IGST";
 
-const STORAGE_KEY = "proforma_invoices";
+type ItemRow = {
+  id: string;
+  name: string;
+  qty: number;
+  rate: number;
+  taxMode: TaxMode;
+};
+
+const STORAGE_KEY = "proforma_invoices"; // ✅ plural + matches list page
 
 export default function NewProformaInvoicePage() {
   const router = useRouter();
 
   // Form state
   const [customerName, setCustomerName] = useState("");
-  const [invoiceNumber, setInvoiceNumber] = useState(
+  const [invoiceNumber, setInvoiceNumber] = useState(   // ✅ changed
     "PI-" + (Math.floor(Date.now() / 1000) % 100000)
   );
   const [reference, setReference] = useState("");
-  const [invoiceDate, setInvoiceDate] = useState(new Date().toISOString().slice(0, 10));
+  const [invoiceDate, setInvoiceDate] = useState(       // ✅ renamed
+    new Date().toISOString().slice(0, 10)
+  );
   const [expiryDate, setExpiryDate] = useState("");
   const [salesperson, setSalesperson] = useState("");
   const [projectName, setProjectName] = useState("");
@@ -26,40 +36,40 @@ export default function NewProformaInvoicePage() {
 
   // Items
   const [items, setItems] = useState<ItemRow[]>([
-    { id: crypto.randomUUID(), name: "", qty: 1, rate: 0 },
+    { id: crypto.randomUUID(), name: "", qty: 1, rate: 0, taxMode: "NONE" },
   ]);
 
   // Pricing controls
-  const [discountPct, setDiscountPct] = useState(0); // %
-  const [taxType, setTaxType] = useState<"TDS" | "TCS">("TDS");
-  const [taxPct, setTaxPct] = useState(0); // 0, 5, 12, 18, 28
+  const [discountPct, setDiscountPct] = useState(0);
   const [adjustment, setAdjustment] = useState(0);
 
-  // Computations
-  const subTotal = useMemo(
-    () => items.reduce((s, i) => s + (Number(i.qty) || 0) * (Number(i.rate) || 0), 0),
-    [items]
-  );
+  // Row calculation
+  const rowAmount = (row: ItemRow) => {
+    const base = row.qty * row.rate;
+    if (row.taxMode === "CGST_SGST") return base + base * 0.18;
+    if (row.taxMode === "IGST") return base + base * 0.18;
+    return base;
+  };
+
+  // Totals
+  const subTotal = useMemo(() => items.reduce((s, i) => s + rowAmount(i), 0), [items]);
   const discountAmt = useMemo(
     () => (subTotal * (Number(discountPct) || 0)) / 100,
     [subTotal, discountPct]
   );
-  const taxAmt = useMemo(() => {
-    const base = ((subTotal - discountAmt) * (Number(taxPct) || 0)) / 100;
-    return taxType === "TDS" ? -base : base; // TDS deducts, TCS adds
-  }, [subTotal, discountAmt, taxPct, taxType]);
   const total = useMemo(
-    () => subTotal - discountAmt + taxAmt + (Number(adjustment) || 0),
-    [subTotal, discountAmt, taxAmt, adjustment]
+    () => subTotal - discountAmt + (Number(adjustment) || 0),
+    [subTotal, discountAmt, adjustment]
   );
 
-  // Item row actions
+  // Item handlers
   const addRow = () =>
-    setItems((rows) => [...rows, { id: crypto.randomUUID(), name: "", qty: 1, rate: 0 }]);
-
+    setItems((rows) => [
+      ...rows,
+      { id: crypto.randomUUID(), name: "", qty: 1, rate: 0, taxMode: "NONE" },
+    ]);
   const removeRow = (id: string) =>
     setItems((rows) => (rows.length === 1 ? rows : rows.filter((r) => r.id !== id)));
-
   const updateRow = (id: string, patch: Partial<ItemRow>) =>
     setItems((rows) => rows.map((r) => (r.id === id ? { ...r, ...patch } : r)));
 
@@ -71,7 +81,7 @@ export default function NewProformaInvoicePage() {
     list.push({
       id: crypto.randomUUID(),
       date: invoiceDate,
-      invoiceNumber,
+      invoiceNumber,        // ✅ fixed
       customerName,
       status,
       amount: total,
@@ -85,25 +95,27 @@ export default function NewProformaInvoicePage() {
         terms,
         items,
         discountPct,
-        taxPct,
-        taxType,
         adjustment,
       },
     });
 
     localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
-    router.push("/proforma-invoices");
+    router.push("/books/sales/proforma-invoice");
   }
 
   return (
     <div className="min-h-screen p-6 bg-green-50">
-      <h1 className="mb-6 text-2xl font-bold text-green-800">New Proforma Invoice</h1>
+      <h1 className="mb-6 text-2xl font-bold text-green-800">
+        New Proforma Invoice
+      </h1>
 
       <div className="p-6 space-y-8 bg-white shadow-md rounded-2xl">
         {/* Top grid */}
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           <div>
-            <label className="block text-sm font-medium text-green-800">Customer Name*</label>
+            <label className="block text-sm font-medium text-green-800">
+              Customer Name*
+            </label>
             <input
               value={customerName}
               onChange={(e) => setCustomerName(e.target.value)}
@@ -112,7 +124,9 @@ export default function NewProformaInvoicePage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-green-800">Invoice #*</label>
+            <label className="block text-sm font-medium text-green-800">
+              Proforma Invoice No #*
+            </label>
             <input
               value={invoiceNumber}
               onChange={(e) => setInvoiceNumber(e.target.value)}
@@ -121,7 +135,9 @@ export default function NewProformaInvoicePage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-green-800">Reference # (optional)</label>
+            <label className="block text-sm font-medium text-green-800">
+              Reference # (optional)
+            </label>
             <input
               value={reference}
               onChange={(e) => setReference(e.target.value)}
@@ -131,7 +147,9 @@ export default function NewProformaInvoicePage() {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-green-800">Invoice Date*</label>
+              <label className="block text-sm font-medium text-green-800">
+                Proforma Date*
+              </label>
               <input
                 type="date"
                 value={invoiceDate}
@@ -140,7 +158,9 @@ export default function NewProformaInvoicePage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-green-800">Expiry Date</label>
+              <label className="block text-sm font-medium text-green-800">
+                Expiry Date
+              </label>
               <input
                 type="date"
                 value={expiryDate}
@@ -151,7 +171,9 @@ export default function NewProformaInvoicePage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-green-800">Salesperson</label>
+            <label className="block text-sm font-medium text-green-800">
+              Salesperson
+            </label>
             <input
               value={salesperson}
               onChange={(e) => setSalesperson(e.target.value)}
@@ -159,7 +181,9 @@ export default function NewProformaInvoicePage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-green-800">Project Name</label>
+            <label className="block text-sm font-medium text-green-800">
+              Project Name
+            </label>
             <input
               value={projectName}
               onChange={(e) => setProjectName(e.target.value)}
@@ -174,12 +198,11 @@ export default function NewProformaInvoicePage() {
           <textarea
             value={subject}
             onChange={(e) => setSubject(e.target.value)}
-            placeholder="Let your customer know what this invoice is for"
+            placeholder="Let your customer know what this proforma is for"
             className="w-full px-3 py-2 mt-1 border rounded-lg focus:ring-2 focus:ring-green-400"
           />
         </div>
 
-        {/* Items */}
         <div>
           <div className="flex items-center justify-between mb-2">
             <h2 className="text-lg font-semibold text-green-700">Item Table</h2>
@@ -193,6 +216,7 @@ export default function NewProformaInvoicePage() {
                   <th className="p-2 text-left">Item Details</th>
                   <th className="p-2 text-left">Quantity</th>
                   <th className="p-2 text-left">Rate</th>
+                  <th className="p-2 text-left">Tax Type</th>
                   <th className="p-2 text-left">Amount</th>
                   <th className="p-2"></th>
                 </tr>
@@ -203,7 +227,9 @@ export default function NewProformaInvoicePage() {
                     <td className="p-2">
                       <input
                         value={row.name}
-                        onChange={(e) => updateRow(row.id, { name: e.target.value })}
+                        onChange={(e) =>
+                          updateRow(row.id, { name: e.target.value })
+                        }
                         placeholder="Type or click to select an item"
                         className="w-full px-2 py-1 border rounded"
                       />
@@ -213,7 +239,9 @@ export default function NewProformaInvoicePage() {
                         type="number"
                         min={0}
                         value={row.qty}
-                        onChange={(e) => updateRow(row.id, { qty: Number(e.target.value) })}
+                        onChange={(e) =>
+                          updateRow(row.id, { qty: Number(e.target.value) })
+                        }
                         className="w-24 px-2 py-1 border rounded"
                       />
                     </td>
@@ -222,12 +250,29 @@ export default function NewProformaInvoicePage() {
                         type="number"
                         min={0}
                         value={row.rate}
-                        onChange={(e) => updateRow(row.id, { rate: Number(e.target.value) })}
+                        onChange={(e) =>
+                          updateRow(row.id, { rate: Number(e.target.value) })
+                        }
                         className="px-2 py-1 border rounded w-28"
                       />
                     </td>
+                    <td className="p-2">
+                      <select
+                        value={row.taxMode}
+                        onChange={(e) =>
+                          updateRow(row.id, {
+                            taxMode: e.target.value as TaxMode,
+                          })
+                        }
+                        className="px-2 py-1 border rounded"
+                      >
+                        <option value="NONE">No Tax</option>
+                        <option value="CGST_SGST">CGST+SGST (18%)</option>
+                        <option value="IGST">IGST (18%)</option>
+                      </select>
+                    </td>
                     <td className="p-2 font-medium">
-                      ₹{(Number(row.qty) * Number(row.rate)).toFixed(2)}
+                      ₹{rowAmount(row).toFixed(2)}
                     </td>
                     <td className="p-2">
                       <button
@@ -257,10 +302,12 @@ export default function NewProformaInvoicePage() {
           </div>
         </div>
 
-        {/* Totals */}
+        {/* Totals card */}
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           <div>
-            <label className="block text-sm font-medium text-green-800">Customer Notes</label>
+            <label className="block text-sm font-medium text-green-800">
+              Customer Notes
+            </label>
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
@@ -286,43 +333,10 @@ export default function NewProformaInvoicePage() {
                   className="w-24 px-2 py-1 border rounded"
                 />
                 <span>%</span>
-                <span className="text-sm text-gray-600">₹{discountAmt.toFixed(2)}</span>
+                <span className="text-sm text-gray-600">
+                  ₹{discountAmt.toFixed(2)}
+                </span>
               </div>
-            </div>
-
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex items-center gap-4">
-                <label className="flex items-center gap-1">
-                  <input
-                    type="radio"
-                    checked={taxType === "TDS"}
-                    onChange={() => setTaxType("TDS")}
-                  />
-                  TDS
-                </label>
-                <label className="flex items-center gap-1">
-                  <input
-                    type="radio"
-                    checked={taxType === "TCS"}
-                    onChange={() => setTaxType("TCS")}
-                  />
-                  TCS
-                </label>
-              </div>
-              <select
-                value={taxPct}
-                onChange={(e) => setTaxPct(Number(e.target.value))}
-                className="px-2 py-1 border rounded"
-              >
-                {[0, 5, 12, 18, 28].map((t) => (
-                  <option key={t} value={t}>
-                    {t}% Tax
-                  </option>
-                ))}
-              </select>
-              <span className="text-sm text-gray-600">
-                {taxType === "TDS" ? "-" : "+"}₹{Math.abs(taxAmt).toFixed(2)}
-              </span>
             </div>
 
             <div className="flex items-center justify-between gap-4">
@@ -342,9 +356,10 @@ export default function NewProformaInvoicePage() {
           </div>
         </div>
 
-        {/* Terms */}
         <div>
-          <label className="block text-sm font-medium text-green-800">Terms & Conditions</label>
+          <label className="block text-sm font-medium text-green-800">
+            Terms & Conditions
+          </label>
           <textarea
             value={terms}
             onChange={(e) => setTerms(e.target.value)}
@@ -352,11 +367,12 @@ export default function NewProformaInvoicePage() {
           />
         </div>
 
+
         {/* Footer buttons */}
         <div className="flex flex-wrap justify-end gap-3">
           <button
             onClick={() => save("Draft")}
-            className="px-4 py-2 border rounded-lg hover:bg-green-100"
+            className="px-4 py-2 text-white bg-green-600 rounded-lg shadow hover:bg-green-700"
           >
             Save as Draft
           </button>
@@ -366,9 +382,12 @@ export default function NewProformaInvoicePage() {
           >
             Save and Send
           </button>
+          <button className="px-4 py-2 text-white bg-green-600 rounded-lg shadow hover:bg-green-700">
+            Download PDF
+          </button>
           <button
-            onClick={() => router.push("/proforma-invoices")}
-            className="px-4 py-2 border rounded-lg hover:bg-red-100"
+            onClick={() => router.push("/books/sales/proforma-invoice")}
+            className="px-4 py-2 text-white bg-green-600 rounded-lg shadow hover:bg-green-700"
           >
             Cancel
           </button>

@@ -10,6 +10,7 @@ type Quote = {
   customerName: string;
   status: "Draft" | "Sent" | "Accepted" | "Rejected";
   amount: number;
+  expiryDate?: string;   // new field
 };
 
 const STORAGE_KEY = "quotes";
@@ -31,12 +32,39 @@ export default function QuotesPage() {
           customerName: "ABC Pvt Ltd",
           status: "Draft",
           amount: 5000,
+          expiryDate: new Date(
+            Date.now() + 7 * 24 * 60 * 60 * 1000
+          ) // 7 days later
+            .toISOString()
+            .slice(0, 10),
         },
       ];
       localStorage.setItem(STORAGE_KEY, JSON.stringify(seed));
       setQuotes(seed);
     }
   }, []);
+
+  // Determine if a quote is expired or active
+  const getQuoteState = (q: Quote) => {
+    if (!q.expiryDate) return "Active";
+    const today = new Date().toISOString().slice(0, 10);
+    return q.expiryDate < today ? "Expired" : "Active";
+  };
+
+  // Move quote to proforma invoices
+  const moveToProforma = (q: Quote) => {
+    const saved = localStorage.getItem("proformaInvoices");
+    const list = saved ? JSON.parse(saved) : [];
+
+    list.push({
+      ...q,
+      convertedDate: new Date().toISOString().slice(0, 10),
+      type: "Proforma",
+    });
+
+    localStorage.setItem("proformaInvoices", JSON.stringify(list));
+    alert(`Quote ${q.quoteNumber} moved to Proforma Invoice`);
+  };
 
   return (
     <div className="min-h-screen p-6 bg-green-50">
@@ -59,12 +87,16 @@ export default function QuotesPage() {
               <th className="p-3 text-left">Customer Name</th>
               <th className="p-3 text-left">Status</th>
               <th className="p-3 text-left">Amount</th>
+              <th className="p-3 text-left">Actions</th>
             </tr>
           </thead>
           <tbody>
             {quotes.length === 0 ? (
               <tr>
-                <td colSpan={5} className="p-4 text-center text-gray-500 bg-white">
+                <td
+                  colSpan={7}
+                  className="p-4 text-center text-gray-500 bg-white"
+                >
                   No quotes found
                 </td>
               </tr>
@@ -72,7 +104,9 @@ export default function QuotesPage() {
               quotes.map((q, idx) => (
                 <tr
                   key={q.id}
-                  className={`${idx % 2 ? "bg-green-100" : "bg-green-50"} border-b`}
+                  className={`${
+                    idx % 2 ? "bg-green-100" : "bg-green-50"
+                  } border-b`}
                 >
                   <td className="p-3">{q.date}</td>
                   <td className="p-3">{q.quoteNumber}</td>
@@ -93,6 +127,16 @@ export default function QuotesPage() {
                     </span>
                   </td>
                   <td className="p-3">₹{q.amount.toFixed(2)}</td>
+                  
+                  <td className="p-3">
+                  <button
+                  onClick={() => moveToProforma(q)}
+                  className="px-3 py-1 text-sm text-white bg-green-600 rounded shadow hover:bg-green-700"
+                >
+                  Move to Proforma
+                </button>
+
+                  </td>
                 </tr>
               ))
             )}
