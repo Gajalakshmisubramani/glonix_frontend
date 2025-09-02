@@ -22,7 +22,9 @@ export default function BooksLayout({ children }: { children: React.ReactNode })
     {
       name: "Items",
       icon: <Package size={18} />,
-      subItems: [{ name: "Items", href: "/books/items" }],
+      subItems: [{ name: "Items", href: "/books/items/item" },
+                {name: "investory management", href: "/books/items/inventory" },
+      ],
     },
     {
       name: "Banking",
