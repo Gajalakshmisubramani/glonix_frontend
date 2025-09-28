@@ -89,12 +89,12 @@ export default function BooksLayout({ children }: { children: React.ReactNode })
   icon: <ShoppingCart size={18} />,
   subItems: [
     { name: "Vendors", href: "/books/purchase/vendors" },
-    { name: "Bills", href: "/books/purchase/bills" },
     { name: "GST", href: "/books/purchase/gst" },
     { name: "Non-GST", href: "/books/purchase/non-gst" },
     { name: "Freight", href: "/books/purchase/freight" },
-    { name: "Petty Cash", href: "/books/purchase/petty-cash" },
+    { name: "Import Bills", href: "/books/purchase/import_bills" },
     { name: "Duty", href: "/books/purchase/duty" },
+    {name:"Purchase Orders", href:"/books/purchase/bill_order"},
   ],
 },
     {
@@ -196,26 +196,26 @@ export default function BooksLayout({ children }: { children: React.ReactNode })
         </nav>
       </div>
         
-        <div className="flex-1 flex flex-col bg-gray-50">
+        <div className="flex flex-col flex-1 bg-gray-50">
         {/* Top Navbar */}
-        <div className="h-11 bg-green-700 flex justify-end items-center px-4 shadow-md">
+        <div className="flex items-center justify-end px-4 bg-green-700 shadow-md h-11">
           <div className="relative" ref={dropdownRef}>
             <div
-              className="w-8 h-8 rounded-full bg-gray-200 cursor-pointer"
+              className="w-8 h-8 bg-gray-200 rounded-full cursor-pointer"
               onClick={() => setDropdownOpen((prev) => !prev)}
             />
             {dropdownOpen && (
-              <div className="absolute right-0 mt-2 w-44 bg-white shadow-md rounded-md py-2 z-50">
+              <div className="absolute right-0 z-50 py-2 mt-2 bg-white rounded-md shadow-md w-44">
                 <button
                   onClick={() => router.push("/dashboard")}
-                  className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+                  className="flex items-center w-full gap-2 px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-100"
                 >
                   <LayoutDashboard size={16} />
                   Go to Dashboard
                 </button>
                 <button
                   onClick={handleLogout}
-                  className="flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-gray-100 w-full text-left"
+                  className="flex items-center w-full gap-2 px-4 py-2 text-sm text-left text-red-600 hover:bg-gray-100"
                 >
                   <LogOut size={16} />
                   Logout
